@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+    - name: staging
+      # database: usgs-equake
+
+      schema: equake_data
+
+      # loaded_at_field: record_loaded_at
+      tables:
+        - name: geo_json
+         # freshness:
+           # error_after: {count: 6, period: hour}
