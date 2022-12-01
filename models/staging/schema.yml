@@ -11,3 +11,141 @@ sources:
         - name: geo_json
          # freshness:
            # error_after: {count: 6, period: hour}
+models:
+    - name: stg_equake
+      description: >
+        This data was collected by running Airflow on an hourly schedule,
+        querying the following API https://earthquake.usgs.gov/fdsnws/event/1/ for the
+        days earthquakes, the data was then updated in GoogleBigQuery using CDC
+        hash to prevent duplicate rows. The source represents the cumulation
+        of data collected over several days (stopped arbitrarily to reduce costs).
+      columns:
+          - name: eventid
+            description: >
+              Primary key for this table.
+              Unique identifier for the latest version of a product.
+              The id is made of of these four attributes:
+                source
+                  The product contributor, usually a network code.
+                type
+                  The type of product.
+                  See http://ehppdl1.cr.usgs.gov/userguide/products/ for a list of product types.
+                code
+                  A unique identifier from the product source, for this type of product.
+                updateTime (in our case the most recent updateTime for that prodcut)
+                  A millisecond timestamp that indicates when this version of the product was created.
+            tests:
+                - unique:
+                    severity: warn
+                - not_null:
+                    severity: warn
+          - name: magnitude 
+            description: The magnitude for the event. See also magType.
+          - name: location_description 
+            description: >
+              Textual description of named geographic region near to the event.
+              This may be a city name, or a Flinn-Engdahl Region name.  
+          - name: time 
+            description: >
+              Time when the event occurred.
+              Times are reported in milliseconds since the epoch ( 1970-01-01T00:00:00.000Z),
+              and do not include leap seconds.
+              In certain output formats, the date is formatted for readability. 
+          - name: date_updated 
+            description: >
+              Time when the event was most recently updated.
+              Times are reported in milliseconds since the epoch.
+              In certain output formats, the date is formatted for readability. 
+          - name: timezone 
+            description: Timezone offset from UTC in minutes at the event epicenter.
+          - name: feed_url 
+            description: Link to USGS Event Page for event. 
+          - name: geojson_detail_feed_url 
+            description: >
+              Link to GeoJSON detail feed from a GeoJSON summary feed.
+              When searching and using geojson with callback, 
+              no callback is included in the detail url. 
+          - name: dyfi_felt_count 
+            description: The total number of felt reports submitted to the DYFI? system. 
+          - name: dyfi_max_intensity 
+            description: >
+              The maximum reported intensity for the event.
+              Computed by DYFI. While typically reported as a roman numeral,
+              for the purposes of this API,
+              intensity is expected as the decimal equivalent of the roman numeral. 
+          - name: shakemap_max_instrumental_intensity 
+            description: >
+              The maximum estimated instrumental intensity for the event.
+              Computed by ShakeMap. While typically reported as a roman numeral,
+              for the purposes of this API,
+              intensity is expected as the decimal equivalent of the roman numeral.
+          - name: alert_level 
+            description: >
+              The alert level from the PAGER earthquake impact scale.
+              “green”, “yellow”, “orange”, “red”. 
+          - name: status 
+            description: Indicates whether the event has been reviewed by a human.
+          - name: tsunami 
+            description: >
+              This flag is set to "1" for large events in oceanic regions and "0" otherwise.
+              The existence or value of this flag does not indicate if a tsunami actually did
+              or will exist. If the flag value is "1", the event will include a link to the
+              NOAA Tsunami website for tsunami information.
+              The USGS is not responsible for Tsunami warning;
+              we are simply providing a link to the authoritative NOAA source.
+              See http://www.tsunami.gov/ for all current tsunami alert statuses.
+          - name: significance 
+            description: >
+              A number describing how significant the event is.
+              Larger numbers indicate a more significant event.
+              This value is determined on a number of factors,
+              including | magnitude, maximum MMI, felt reports, and estimated impact.
+          - name: prefered_network_id 
+            description: >
+              The ID of a data contributor.
+              Identifies the network considered to be
+              the preferred source of information for this event. 
+          - name: source_code_id 
+            description: >
+              An identifying code assigned by
+              - and unique from - 
+              the corresponding source for the event. 
+          - name: event_ids_associated 
+            description: A comma-separated list of event ids that are associated to an event. 
+          - name: source_network_contributors 
+            description: A comma-separated list of network contributors. 
+          - name: product_types_associated 
+            description: A comma-separated list of product types associated to this event. 
+          - name: seismic_station_report_count 
+            description: The total number of seismic stations used to determine earthquake location. 
+          - name: horizontal_distance_degrees_epicenter 
+            description: >
+                Horizontal distance from the epicenter to the nearest station (in degrees).
+                1 degree is approximately 111.2 kilometers.
+                In general, the smaller this number, the more reliable is the calculated depth
+                of the earthquake. 
+          - name: root_mean_time_travel_time_residual_seconds 
+            description: >
+              The root-mean-square (RMS) travel time residual, in sec, using all weights.
+              This parameter provides a measure of the fit of the observed arrival times
+              to the predicted arrival times for this location.
+              Smaller numbers reflect a better fit of the data.
+              The value is dependent on the accuracy of the velocity model
+              used to compute the earthquake location,
+              the quality weights assigned to the arrival time data,
+              and the procedure used to locate the earthquake. 
+          - name: max_azimuthal_gap 
+            description: >
+              The largest azimuthal gap between azimuthally adjacent stations (in degrees).
+              In general, the smaller this number, the more reliable is the calculated
+              horizontal position of the earthquake.
+              Earthquake locations in which the azimuthal gap exceeds 180 degrees
+              typically have large location and depth uncertainties. 
+          - name: magnitude_type 
+            description: The method or algorithm used to calculate the preferred magnitude for the event. 
+          - name: siesmic_type 
+            description: Type of seismic event. 
+          - name: feed_title 
+            description: the title of the feed
+          - name: geometry 
+            description: location of event.
